@@ -31,6 +31,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.publisher.TestPublisher;
+import reactor.util.context.Context;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
@@ -557,7 +558,7 @@ public class ServerHttpSecurityTests {
 
 		@GetMapping("/**")
 		Mono<String> pathWithinApplicationFromContext() {
-			return Mono.subscriberContext().filter((c) -> c.hasKey(ServerWebExchange.class))
+			return Mono.deferContextual(Mono::just).cast(Context.class).filter((c) -> c.hasKey(ServerWebExchange.class))
 					.map((c) -> c.get(ServerWebExchange.class))
 					.map((e) -> e.getRequest().getPath().pathWithinApplication().value());
 		}

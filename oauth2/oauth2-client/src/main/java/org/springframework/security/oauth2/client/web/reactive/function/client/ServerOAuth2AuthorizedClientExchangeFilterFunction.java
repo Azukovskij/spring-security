@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import reactor.core.publisher.Mono;
+import reactor.util.context.Context;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -139,7 +140,8 @@ public final class ServerOAuth2AuthorizedClientExchangeFilterFunction implements
 	// @formatter:on
 
 	// @formatter:off
-	private final Mono<ServerWebExchange> currentServerWebExchangeMono = Mono.subscriberContext()
+	private final Mono<ServerWebExchange> currentServerWebExchangeMono = Mono.deferContextual(Mono::just)
+			.cast(Context.class)
 			.filter((c) -> c.hasKey(ServerWebExchange.class))
 			.map((c) -> c.get(ServerWebExchange.class));
 	// @formatter:on

@@ -17,6 +17,7 @@
 package org.springframework.security.oauth2.client.web.reactive.result.method.annotation;
 
 import reactor.core.publisher.Mono;
+import reactor.util.context.Context;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -141,7 +142,8 @@ public final class OAuth2AuthorizedClientArgumentResolver implements HandlerMeth
 
 	private Mono<ServerWebExchange> currentServerWebExchange() {
 		// @formatter:off
-		return Mono.subscriberContext()
+		return Mono.deferContextual(Mono::just)
+				.cast(Context.class)
 				.filter((c) -> c.hasKey(ServerWebExchange.class))
 				.map((c) -> c.get(ServerWebExchange.class));
 		// @formatter:on

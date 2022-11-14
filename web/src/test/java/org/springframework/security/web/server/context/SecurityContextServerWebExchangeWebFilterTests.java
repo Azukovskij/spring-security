@@ -19,6 +19,7 @@ package org.springframework.security.web.server.context;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import reactor.util.context.Context;
 
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -47,10 +48,10 @@ public class SecurityContextServerWebExchangeWebFilterTests {
 		Mono<Void> result = this.filter
 				.filter(this.exchange, new DefaultWebFilterChain((e) -> e.getPrincipal()
 						.doOnSuccess((contextPrincipal) -> assertThat(contextPrincipal).isEqualTo(this.principal))
-						.flatMap((contextPrincipal) -> Mono.subscriberContext())
+						.flatMap((contextPrincipal) -> Mono.deferContextual(Mono::just).cast(Context.class))
 						.doOnSuccess((context) -> assertThat(context.<String>get("foo")).isEqualTo("bar")).then()))
-				.subscriberContext((context) -> context.put("foo", "bar"))
-				.subscriberContext(ReactiveSecurityContextHolder.withAuthentication(this.principal));
+				.contextWrite((context) -> context.put("foo", "bar"))
+				.contextWrite(ReactiveSecurityContextHolder.withAuthentication(this.principal));
 		StepVerifier.create(result).verifyComplete();
 	}
 
@@ -62,7 +63,7 @@ public class SecurityContextServerWebExchangeWebFilterTests {
 								.doOnSuccess(
 										(contextPrincipal) -> assertThat(contextPrincipal).isEqualTo(this.principal))
 								.then()))
-				.subscriberContext(ReactiveSecurityContextHolder.withAuthentication(this.principal));
+				.contextWrite(ReactiveSecurityContextHolder.withAuthentication(this.principal));
 		StepVerifier.create(result).verifyComplete();
 	}
 

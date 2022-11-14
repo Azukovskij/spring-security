@@ -200,7 +200,8 @@ public class SecurityReactorContextConfigurationTests {
 		SecurityContextHolder.getContext().setAuthentication(this.authentication);
 		ClientResponse clientResponseOk = ClientResponse.create(HttpStatus.OK).build();
 		// @formatter:off
-		ExchangeFilterFunction filter = (req, next) -> Mono.subscriberContext()
+		ExchangeFilterFunction filter = (req, next) -> Mono.deferContextual(Mono::just)
+				.cast(Context.class)
 				.filter((ctx) -> ctx.hasKey(SecurityReactorContextSubscriber.SECURITY_CONTEXT_ATTRIBUTES))
 				.map((ctx) -> ctx.get(SecurityReactorContextSubscriber.SECURITY_CONTEXT_ATTRIBUTES))
 				.cast(Map.class)
